@@ -1,0 +1,24 @@
+library(maps)
+library(maptools)
+
+us_virus <- read.csv(file = "C:/Users/Trevor/Desktop/Quant Methods/US influenza.csv",
+              header = T, colClasses='character')
+
+head(us_virus)
+
+cols_of_interest = c('Subtype', 'Collection.Date', 'State.Province',
+                     'Segment', 'Segment.Length')
+us_virus = us_virus[ , cols_of_interest]
+
+head(us_virus)
+
+map('usa')
+states = map('state', fill=T)
+IDs = states$names
+IDs_cr = sapply(IDs, function(x) strsplit(x, ":")[[1]][1])
+
+state_sp = map2SpatialPolygons(states,IDs_cr, CRS("+proj=longlat"))
+
+plot(state_sp)
+points(coordinates(state_sp), col='red', pch='.')
+

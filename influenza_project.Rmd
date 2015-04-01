@@ -1,3 +1,10 @@
+# Virus data analysis
+
+##  Data load and restructure
+
+Here I develop the code to import the data ... 
+
+```{r}
 library(maps)
 library(maptools)
 
@@ -21,4 +28,5 @@ state_sp = map2SpatialPolygons(states,IDs_cr, CRS("+proj=longlat"))
 
 plot(state_sp)
 points(coordinates(state_sp), col='red', pch='.')
+```
 

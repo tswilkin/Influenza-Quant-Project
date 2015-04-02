@@ -14,7 +14,7 @@ us_virus <- read.csv(file = "C:/Users/Trevor/Desktop/Quant Methods/US influenza.
 head(us_virus)
 
 cols_of_interest = c('Subtype', 'Collection.Date', 'State.Province',
-                     'Segment', 'Segment.Length')
+                     'Segment', 'Segment.Length','latitude','logitude')
 us_virus = us_virus[ , cols_of_interest]
 
 head(us_virus)
@@ -28,5 +28,35 @@ state_sp = map2SpatialPolygons(states,IDs_cr, CRS("+proj=longlat"))
 
 plot(state_sp)
 points(coordinates(state_sp), col='red', pch='.')
+
+st_coords = coordinates(state_sp)
+rownames(st_coords)
+any("South Carolina" %in% rownames(st_coords))
+any("south carolina" %in% rownames(st_coords))
+
 ```
 
+#Lat/Long
+## Code for adding Latitude and Logitude Coords to us_virus.
+
+```{r}
+us_virus$latitude <- NA
+us_virus$longitude <- NA
+for (i in 1:nrow(us_virus)){
+  # figure out what state is row i
+  state = tolower(us_virus$State.Province[i])
+  # figure out coord of that state
+  coord_tmp = st_coords[which(rownames(st_coords) == state), ]
+  # append that coord to row i
+  us_virus$latitude[i] = coord_tmp[2]
+  us_virus$longitude[i] = coord_tmp[1]
+}
+
+
+
+
+
+
+
+
+```

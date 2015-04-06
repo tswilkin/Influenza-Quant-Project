@@ -8,13 +8,12 @@ Here I develop the code to import the data ...
 library(maps)
 library(maptools)
 
-us_virus <- read.csv(file = "C:/Users/Trevor/Desktop/Quant Methods/US influenza.csv",
-              header = T, colClasses='character')
+us_virus = read.csv(file = "./data/US_influenza.csv")
 
 head(us_virus)
 
 cols_of_interest = c('Subtype', 'Collection.Date', 'State.Province',
-                     'Segment', 'Segment.Length','latitude','logitude')
+                     'Segment', 'Segment.Length')
 us_virus = us_virus[ , cols_of_interest]
 
 head(us_virus)
@@ -29,34 +28,80 @@ state_sp = map2SpatialPolygons(states,IDs_cr, CRS("+proj=longlat"))
 plot(state_sp)
 points(coordinates(state_sp), col='red', pch='.')
 
-st_coords = coordinates(state_sp)
-rownames(st_coords)
-any("South Carolina" %in% rownames(st_coords))
-any("south carolina" %in% rownames(st_coords))
-
+state_coords = coordinates(state_sp)
+rownames(state_coords)
 ```
 
-#Lat/Long
-## Code for adding Latitude and Logitude Coords to us_virus.
+## Setup Enviornmental Raster Layers
 
 ```{r}
-us_virus$latitude <- NA
-us_virus$longitude <- NA
-for (i in 1:nrow(us_virus)){
-  # figure out what state is row i
-  state = tolower(us_virus$State.Province[i])
-  # figure out coord of that state
-  coord_tmp = st_coords[which(rownames(st_coords) == state), ]
-  # append that coord to row i
-  us_virus$latitude[i] = coord_tmp[2]
-  us_virus$longitude[i] = coord_tmp[1]
+library(raster)
+
+prjString = "+proj=longlat +ellps=WGS84"
+
+# data downloaded and described here
+# http://www.worldclim.org/bioclim
+
+# A function that corrects for the fact that WorldClim data is signed
+fixData = function(x){
+    temp = ifelse(x > 23767, x - 65536, x)
+	new.x = ifelse(temp == -9999, NA, temp)
+	new.x
 }
 
+# Stack WorldClim Bioclimatic Variables
+useVars = 1:19
+filenames = sapply(useVars, function(x) paste('bio', x, '.bil', sep=''))
+tempStack = stack(file.path('./data/bio_10m_bil', filenames))
+bioStack = calc(tempStack, fixData)
+projection(bioStack) = CRS(prjString)
 
+# correct for the fact that the temperature related variables need
+# to be devided by 10 to be in units of C
+bioStack2 = bioStack
+for(i in 1:11){  ##any temperature related variable
+	bioStack2 = setValues(bioStack2, getValues(bioStack[[i]] / 10), i)
+}
+bioStack = bioStack2
 
+names(bioStack) = c('mat','mdr','iso','tseas','tmax','tmin','tar','twetq',
+                    'tdryq','twarmq','tcoldq','ap','pwet','pdry','pseas',
+                    'pwetq','pdryq','pwarmq','pcoldq')
 
-
-
-
-
+writeRaster(bioStack, file='./data/bioclim_5m.grd', format='raster',
+            overwrite=TRUE)
 ```
+
+## Query the enviornmental BioClim variables and extract state centroids
+
+```{r}
+bioStack = raster('./data/bioclim_5m.grd')
+# extract climate for entire state and average the values
+state_clim = extract(bioStack, state_sp, fun=mean)
+rownames(state_clim) = names(state_sp)
+head(state_clim)
+
+# first drop any rows in us_virus where State.Providice does not match
+# a state name
+
+us_virus = subset(us_virus, tolower(State.Province) %in% rownames(st_coords))
+
+# now find the row indices of the state coord and climate matricies that 
+# contain information on each record in the State.Provice record
+row_indices = match(tolower(us_virus$State.Province), rownames(st_coords))
+summary(row_indices)
+length(row_indices)
+
+coords = state_coords[row_indices, ]
+clim = state_clim[row_indices, ]
+
+us_virus = data.frame(us_virus, latitude = coords[ , 2],
+                      longitude = coords[ , 1], clim)
+
+head(us_virus)
+
+write.csv(us_virus, file='./data/US_influenza_complete.csv', row.names=F)
+```
+
+
+

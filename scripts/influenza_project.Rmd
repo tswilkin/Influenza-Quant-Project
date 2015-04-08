@@ -52,11 +52,6 @@ for (i in 1:nrow(us_virus)){
   us_virus$longitude[i] = coord_tmp[1]
 }
 
-
-
-
-
-
-
-
 ```
+
+

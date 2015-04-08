@@ -49,9 +49,6 @@ fixData = function(x){
 	new.x
 }
 
-<<<<<<< HEAD
-```
-=======
 # Stack WorldClim Bioclimatic Variables
 useVars = 1:19
 filenames = sapply(useVars, function(x) paste('bio', x, '.bil', sep=''))
@@ -86,12 +83,9 @@ head(state_clim)
 
 # first drop any rows in us_virus where State.Providice does not match
 # a state name
->>>>>>> 93c3fe63dcfb3b6602bdc205028613f1a3e1d4c8
 
 us_virus = subset(us_virus, tolower(State.Province) %in% rownames(st_coords))
 
-<<<<<<< HEAD
-=======
 # now find the row indices of the state coord and climate matricies that 
 # contain information on each record in the State.Provice record
 row_indices = match(tolower(us_virus$State.Province), rownames(st_coords))
@@ -111,4 +105,3 @@ write.csv(us_virus, file='./data/US_influenza_complete.csv', row.names=F)
 
 
 
->>>>>>> 93c3fe63dcfb3b6602bdc205028613f1a3e1d4c8

@@ -44,7 +44,7 @@ prjString = "+proj=longlat +ellps=WGS84"
 
 # A function that corrects for the fact that WorldClim data is signed
 fixData = function(x){
-    temp = ifelse(x > 23767, x - 65536, x)
+  temp = ifelse(x > 23767, x - 65536, x)
 	new.x = ifelse(temp == -9999, NA, temp)
 	new.x
 }

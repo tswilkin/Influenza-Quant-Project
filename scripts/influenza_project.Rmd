@@ -127,7 +127,7 @@ occ_three = us_virus_complete[us_virus_complete$Subtype == "H3", c("longitude", 
 occ_four = us_virus_complete[us_virus_complete$Subtype == "N1", c("longitude", "latitude")]
 
 #Maxent Models
-me = maxent(biostack, occ_one)
-me = maxent(biostack, occ_two)
-me = maxent(biostack, occ_three)
-me = maxent(biostack, occ_four)
+me_one = maxent(biostack, occ_one)
+me_two = maxent(biostack, occ_two)
+me_three = maxent(biostack, occ_three)
+me_four = maxent(biostack, occ_four)

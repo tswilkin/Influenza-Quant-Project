@@ -32,7 +32,7 @@ state_coords = coordinates(state_sp)
 rownames(state_coords)
 ```
 
-## Setup Enviornmental Raster Layers
+## Setup Enviornmental Raster Layers. Graciously given to me from  Dr. McGlinn.
 
 ```{r}
 library(raster)
@@ -52,7 +52,7 @@ fixData = function(x){
 # Stack WorldClim Bioclimatic Variables
 useVars = 1:19
 filenames = sapply(useVars, function(x) paste('bio', x, '.bil', sep=''))
-tempStack = stack(file.path('./data/bio_10m_bil', filenames))
+tempStack = stack(file.path('./data/bioclim/', filenames))
 bioStack = calc(tempStack, fixData)
 projection(bioStack) = CRS(prjString)
 
@@ -103,5 +103,28 @@ head(us_virus)
 write.csv(us_virus, file='./data/US_influenza_complete.csv', row.names=F)
 ```
 
+##Building Models with the completed us_virus data set.
 
+```{r}
+#Package Download
+install.packages('dismo')
 
+#load in the data.
+us_virus_complete = read.csv(file = "./data/US_influenza_complete.csv")
+
+#columns to keep for the linear model.
+cols_to_keep = c('mat', 'tmax', 'tmin', 'Subtype','Collection.Date','State.Province')
+
+#Withholding 20% sample. Replace "occ" with my specified Subtype model.
+fold <- kfold(occ, k=5)
+occtest <- occ[fold == 1, ]
+occtrain <- occ[fold != 1, ]
+
+#building the models for specific subtypes, found in the data.
+occ_one = us_virus_complete[us_virus_complete$Subtype == "H1N1", c("longitude", "latitude")]
+occ_two = us_virus_complete[us_virus_complete$Subtype == "H3N2", c("longitude", "latitude")]
+occ_three = us_virus_complete[us_virus_complete$Subtype == "H3", c("longitude", "latitude")]
+occ_four = us_virus_complete[us_virus_complete$Subtype == "N1", c("longitude", "latitude")]
+
+#Maxent Models
+me = maxent(biostack, occ_one)

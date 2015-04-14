@@ -108,6 +108,7 @@ write.csv(us_virus, file='./data/US_influenza_complete.csv', row.names=F)
 ```{r}
 #Package Download
 install.packages('dismo')
+install.packages('rJava')
 
 #load in the data.
 us_virus_complete = read.csv(file = "./data/US_influenza_complete.csv")

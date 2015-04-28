@@ -146,10 +146,41 @@ fold_h3 <- kfold(occ_h3, k=5)
 occtest_h3 <- occ_h1n1[fold_h3 == 1, ]
 occtrain_h3 <- occ_h1n1[fold_h3 != 1, ]
 
-## Maxent Models
+## Making Maxent Models
 me_h1n1 = maxent(bioStack, occtrain_h1n1)
 me_h3n2 = maxent(bioStack, occtrain_h3n2)
 me_h3 = maxent(bioStack, occtrain_h3)
 me_n1 = maxent(bioStack, occtrain_n1)
+
+## Observing the Models.
+me_h1n1
+me_h3n2
+me_h3
+me_n1
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

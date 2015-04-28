@@ -75,7 +75,11 @@ writeRaster(bioStack, file='./data/bioclim_5m.grd', format='raster',
 ## Query the enviornmental BioClim variables and extract state centroids
 
 ```{r}
-bioStack = raster('./data/bioclim_5m.grd')
+bioStack = stack('./data/bioclim_5m.grd')
+bioStack = crop(bioStack, extent(c(-135, -45, 22, 56)))
+names(bioStack) = c('mat','mdr','iso','tseas','tmax','tmin','tar','twetq',
+                    'tdryq','twarmq','tcoldq','ap','pwet','pdry','pseas',
+                    'pwetq','pdryq','pwarmq','pcoldq')
 # extract climate for entire state and average the values
 state_clim = extract(bioStack, state_sp, fun=mean)
 rownames(state_clim) = names(state_sp)
@@ -107,8 +111,9 @@ write.csv(us_virus, file='./data/US_influenza_complete.csv', row.names=F)
 
 ```{r}
 #Package Download
-install.packages('dismo')
-install.packages('rJava')
+#install.packages('dismo')
+#install.packages('rJava')
+library(dismo)
 
 #load in the data.
 us_virus_complete = read.csv(file = "./data/US_influenza_complete.csv")
@@ -116,19 +121,35 @@ us_virus_complete = read.csv(file = "./data/US_influenza_complete.csv")
 #columns to keep for the linear model.
 cols_to_keep = c('mat', 'tmax', 'tmin', 'Subtype','Collection.Date','State.Province')
 
-#Withholding 20% sample. Replace "occ" with my specified Subtype model.
-fold <- kfold(occ, k=5)
-occtest <- occ[fold == 1, ]
-occtrain <- occ[fold != 1, ]
 
-#building the models for specific subtypes, found in the data.
-occ_one = us_virus_complete[us_virus_complete$Subtype == "H1N1", c("longitude", "latitude")]
-occ_two = us_virus_complete[us_virus_complete$Subtype == "H3N2", c("longitude", "latitude")]
-occ_three = us_virus_complete[us_virus_complete$Subtype == "H3", c("longitude", "latitude")]
-occ_four = us_virus_complete[us_virus_complete$Subtype == "N1", c("longitude", "latitude")]
+##Building the models for specific subtypes, found in the data.
+occ_h1n1 = us_virus_complete[us_virus_complete$Subtype == "H1N1", c("longitude", "latitude")]
+occ_h3n2 = us_virus_complete[us_virus_complete$Subtype == "H3N2", c("longitude", "latitude")]
+occ_h3 = us_virus_complete[us_virus_complete$Subtype == "H3", c("longitude", "latitude")]
+occ_n1 = us_virus_complete[us_virus_complete$Subtype == "N1", c("longitude", "latitude")]
 
-#Maxent Models
-me_one = maxent(biostack, occ_one)
-me_two = maxent(biostack, occ_two)
-me_three = maxent(biostack, occ_three)
-me_four = maxent(biostack, occ_four)
+##Withholding 20% sample. 
+#H1N1
+fold_h1n1 <- kfold(occ_h1n1, k=5)
+occtest_h1n1 <- occ_h1n1[fold_h1n1 == 1, ]
+occtrain_h1n1 <- occ_h1n1[fold_h1n1 != 1, ]
+#H3N2
+fold_h3n2 <- kfold(occ_h3n2, k=5)
+occtest_h3n2 <- occ_h1n1[fold_h3n2 == 1, ]
+occtrain_h3n2 <- occ_h1n1[fold_h3n2 != 1, ]
+#N1
+fold_n1 <- kfold(occ_n1, k=5)
+occtest_n1 <- occ_h1n1[fold_n1 == 1, ]
+occtrain_n1 <- occ_h1n1[fold_n1 != 1, ]
+#H3
+fold_h3 <- kfold(occ_h3, k=5)
+occtest_h3 <- occ_h1n1[fold_h3 == 1, ]
+occtrain_h3 <- occ_h1n1[fold_h3 != 1, ]
+
+## Maxent Models
+me_h1n1 = maxent(bioStack, occtrain_h1n1)
+me_h3n2 = maxent(bioStack, occtrain_h3n2)
+me_h3 = maxent(bioStack, occtrain_h3)
+me_n1 = maxent(bioStack, occtrain_n1)
+
+
